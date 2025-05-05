@@ -1,29 +1,45 @@
-use axum::Server;
-use std::net::SocketAddr;
+use axum::{
+    extract::{Request, State},
+    middleware, RequestExt, Router,
+    routing::get,
+    response::Html,
+};
+use axum_github_oauth::{AuthAction, GithubOauthService, User};
 
-mod error;
-mod handlers;
-mod lib;
-
-use lib::{Config, GithubOauthService};
+/// Middleware to check if the user is authorized.
+async fn auth(
+    State(state): State<GithubOauthService>,
+    mut request: Request,
+) -> Result<Request, AuthAction> {
+    match request.uri().path() {
+        path if state.is_public(path) => Ok(request),
+        _ => request
+            .extract_parts_with_state::<User, GithubOauthService>(&state)
+            .await
+            .map(|_user| request),
+    }
+}
 
 #[tokio::main]
 async fn main() {
-    // Initialize logging
-    tracing_subscriber::fmt::init();
+    let oauth_service = GithubOauthService::new(None).unwrap();
 
-    // Create oauth service with default config
-    let service = GithubOauthService::new(None).expect("Failed to initialize OAuth service");
+    let app = Router::new()
+        .route("/", get(home_handler))
+        .merge(oauth_service.router())
+        .layer(middleware::map_request_with_state(
+            oauth_service.clone(),
+            auth,
+        ))
+        .with_state(oauth_service);
 
-    // Create router
-    let app = service.router();
-
-    // Start server
-    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
-    tracing::info!("Server listening on {}", addr);
-    
-    Server::bind(&addr)
-        .serve(app.into_make_service())
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3010")
         .await
-        .expect("Server failed to start");
+        .expect("failed to bind TcpListener");
+
+    axum::serve(listener, app).await.unwrap();
+}
+
+pub async fn home_handler() -> Html<String> {
+    Html(String::from("Hello"))
 }

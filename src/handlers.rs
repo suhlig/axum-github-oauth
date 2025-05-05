@@ -197,18 +197,6 @@ pub(super) async fn authorize(
         .await
         .map_err(|e| Error::ParseUser(e.to_string()))?;
 
-    // Check the username against an endpoint
-    let url = service.config.check_url.replace("{username}", &user_data.login);
-    let response = client
-        .get(&url)
-        .send()
-        .await
-        .map_err(|_| Error::Authorized(url.clone()))?;
-
-    if !response.status().is_success() {
-        return Err(Error::Authorized(url));
-    }
-
     // Fetch email addresses from the GitHub API
     let emails: Vec<GitHubEmail> = client
         .get(GITHUB_EMAILS_URL)
@@ -223,16 +211,6 @@ pub(super) async fn authorize(
         .map_err(|e| Error::ParseUser(e.to_string()))?;
 
     let mut email = None;
-
-    // find the email address that contains the organization name
-    'outer: for domain in service.config.email_domains {
-        for e in &emails {
-            if e.email.ends_with(&domain) {
-                email = Some(e.email.clone());
-                break 'outer;
-            }
-        }
-    }
 
     // if no email address contains the organization name, find the primary email address
     if email.is_none() {
