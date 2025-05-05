@@ -2,7 +2,8 @@ use axum::{
     extract::{Request, State},
     middleware, RequestExt, Router,
     routing::get,
-    response::Html,
+    response::{Html, IntoResponse},
+    http::StatusCode,
 };
 use axum_github_oauth::{AuthAction, GithubOauthService, User};
 
@@ -26,11 +27,13 @@ async fn main() {
 
     let app = Router::new()
         .route("/", get(home_handler))
+        .route("/protected", get(protected_handler))
         .merge(oauth_service.router())
         .layer(middleware::map_request_with_state(
             oauth_service.clone(),
             auth,
         ))
+        .fallback(not_found_handler)
         .with_state(oauth_service);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3010")
@@ -42,4 +45,12 @@ async fn main() {
 
 pub async fn home_handler() -> Html<String> {
     Html(String::from("Hello"))
+}
+
+pub async fn protected_handler() -> Html<String> {
+    Html(String::from("s3cret"))
+}
+
+pub async fn not_found_handler() -> impl IntoResponse {
+    (StatusCode::NOT_FOUND, Html(String::from("not found")))
 }
