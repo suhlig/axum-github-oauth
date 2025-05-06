@@ -243,7 +243,7 @@ pub(super) async fn authorize(
     session_cookie.set_http_only(true);
     session_cookie.set_secure(true);
     session_cookie.set_same_site(cookie::SameSite::Lax);
-    session_cookie.set_max_age(cookie::time::Duration::days(30));
+    session_cookie.set_max_age(cookie::time::Duration::hours(24)); // TODO make configurable
     session_cookie.set_path("/");
 
     // Remove the CSRF token cookie and add the session cookie to the cookie jar
