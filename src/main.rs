@@ -48,7 +48,7 @@ pub async fn home_handler() -> Html<String> {
 }
 
 pub async fn protected_handler(user: User) -> Html<String> {
-    Html(String::from("s3cret"))
+    Html(String::from(format!("Hello {}, here is the s3cret", user.login)))
 }
 
 pub async fn not_found_handler() -> impl IntoResponse {
