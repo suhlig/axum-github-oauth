@@ -6,6 +6,7 @@ use axum::{
     http::StatusCode,
 };
 use axum_github_oauth::{AuthAction, GithubOauthService, User};
+use tower_http::services::ServeDir;
 
 /// Middleware to check if the user is authorized.
 async fn auth(
@@ -33,6 +34,7 @@ async fn main() {
             oauth_service.clone(),
             auth,
         ))
+        .nest_service("/static", ServeDir::new("static"))
         .fallback(not_found_handler)
         .with_state(oauth_service);
 
