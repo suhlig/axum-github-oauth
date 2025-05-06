@@ -47,7 +47,7 @@ pub async fn home_handler() -> Html<String> {
     Html(String::from("Hello"))
 }
 
-pub async fn protected_handler() -> Html<String> {
+pub async fn protected_handler(user: User) -> Html<String> {
     Html(String::from("s3cret"))
 }
 
