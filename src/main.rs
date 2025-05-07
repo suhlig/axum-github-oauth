@@ -13,12 +13,19 @@ async fn auth(
     State(state): State<GithubOauthService>,
     mut request: Request,
 ) -> Result<Request, AuthAction> {
-    match request.uri().path() {
-        path if state.is_public(path) => Ok(request),
-        _ => request
+    let path = request.uri().path();
+    // Combine library's public paths with application-specific public paths
+    let app_public_paths = ["/", "/static"];
+    
+    if state.is_public(path) || app_public_paths.iter().any(|p| 
+        path == *p || path.starts_with(&format!("{}/", p))
+    ) {
+        Ok(request)
+    } else {
+        request
             .extract_parts_with_state::<User, GithubOauthService>(&state)
             .await
-            .map(|_user| request),
+            .map(|_user| request)
     }
 }
 
