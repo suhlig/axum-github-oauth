@@ -1,6 +1,6 @@
 # Axum github oauth
 
-Basic github oauth service for axum with an optional check endpoint.
+A spike on using GitHub OAuth as authentication and authorization service.
 
 ## Configuration
 
