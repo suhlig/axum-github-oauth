@@ -16,8 +16,8 @@ async fn auth(
     let path = request.uri().path();
     // Combine library's public paths with application-specific public paths
     let app_public_paths = ["/", "/static"];
-    
-    if state.is_public(path) || app_public_paths.iter().any(|p| 
+
+    if state.is_public(path) || app_public_paths.iter().any(|p|
         path == *p || path.starts_with(&format!("{}/", p))
     ) {
         Ok(request)
@@ -53,7 +53,7 @@ async fn main() {
 }
 
 pub async fn home_handler() -> Html<String> {
-    Html(String::from("Hello"))
+    Html(String::from("Hello public"))
 }
 
 pub async fn protected_handler(user: User) -> Html<String> {
