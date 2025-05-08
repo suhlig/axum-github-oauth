@@ -250,5 +250,5 @@ pub(super) async fn authorize(
     let updated_jar = jar.remove(csrf_cookie).add(session_cookie);
 
     // Return the updated cookie jar and a redirect response to the home page
-    Ok((updated_jar, Redirect::to("/")).into_response())
+    Ok((updated_jar, Redirect::to("/protected")).into_response()) // TODO Carry URL to redirect back to as parameter
 }
