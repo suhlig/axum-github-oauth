@@ -7,6 +7,16 @@ use axum::{
 };
 use axum_github_oauth::{AuthAction, GithubOauthService, User};
 use tower_http::services::ServeDir;
+use tower_http::trace::TraceLayer;
+use clap::Parser;
+
+/// Command line arguments
+#[derive(Parser)]
+struct Args {
+    /// Bind address in format IP:PORT
+    #[clap(long, default_value = "0.0.0.0:3000")]
+    bind_address: String,
+}
 
 /// Middleware to check if the user is authorized.
 async fn auth(
@@ -30,7 +40,11 @@ async fn auth(
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let args = Args::parse();
+
+    tracing_subscriber::fmt::init(); // https://docs.rs/tower-http/0.6.2/tower_http/trace/index.html#example
+
     let oauth_service = GithubOauthService::new(None).unwrap();
 
     let app = Router::new()
@@ -41,15 +55,22 @@ async fn main() {
             oauth_service.clone(),
             auth,
         ))
+        .layer(TraceLayer::new_for_http())
         .nest_service("/static", ServeDir::new("static"))
         .fallback(not_found_handler)
         .with_state(oauth_service);
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3010")
-        .await
-        .expect("failed to bind TcpListener");
+    let listener = match tokio::net::TcpListener::bind(&args.bind_address).await {
+        Ok(listener) => listener,
+        Err(e) if e.kind() == std::io::ErrorKind::AddrInUse => {
+            eprintln!("Error: Address already in use");
+            std::process::exit(1);
+        }
+        Err(e) => return Err(e.into()),
+    };
 
     axum::serve(listener, app).await.unwrap();
+    Ok(())
 }
 
 pub async fn home_handler() -> Html<String> {
