@@ -16,3 +16,7 @@ SESSION_KEY="some-long-random-string"
 ## Example
 
 see [src/main.rs](src/main.rs).
+
+## TODO
+
+- authorization by membership in a GH team
