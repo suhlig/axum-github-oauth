@@ -74,11 +74,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 pub async fn home_handler() -> Html<String> {
-    Html(String::from("Hello public"))
+    Html(String::from("Hello public. Look at some <a href=/protected>protected</a> content."))
 }
 
 pub async fn protected_handler(user: User) -> Html<String> {
-    Html(format!("Hello {}, here is the s3cret", user.login))
+    Html(format!("Hello {}, here is the s3cret. Perhaps you want to <a href=/logout>log out</a>?", user.login))
 }
 
 pub async fn not_found_handler() -> impl IntoResponse {

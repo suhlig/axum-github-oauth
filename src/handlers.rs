@@ -97,8 +97,9 @@ pub(super) async fn logout(storage: CookieStorage) -> impl IntoResponse {
         jar = jar.remove(cookie);
     }
 
-    // Return the updated cookie jar and a logout message
-    (jar, "You are now logged out 👋")
+    // Return the updated cookie jar
+    // TODO Add a logout message e.g. as flash
+    (jar, Redirect::to("/").into_response())
 }
 
 /// Represents the request parameters for the authorization request.
