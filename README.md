@@ -44,3 +44,4 @@ The whole application is stateless. The only shared part is the `SESSION_KEY`, w
 ## TODO
 
 - authorization by membership in a GH team
+- redirect to original URL if it is protected and a login had to happen
