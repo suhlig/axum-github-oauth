@@ -50,6 +50,7 @@ pub(super) async fn login(
         .authorize_url(CsrfToken::new_random)
         .add_scope(Scope::new("read:user".to_string()))
         .add_scope(Scope::new("user:email".to_string()))
+        .add_extra_param("prompt", "select_account")
         .url();
 
     // Serialize the CSRF token as a string
