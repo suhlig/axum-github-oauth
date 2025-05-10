@@ -50,6 +50,7 @@ pub(super) async fn login(
         .authorize_url(CsrfToken::new_random)
         .add_scope(Scope::new("read:user".to_string()))
         .add_scope(Scope::new("user:email".to_string()))
+        .add_scope(Scope::new("read:org".to_string()))
         .add_extra_param("prompt", "select_account")
         .url();
 
@@ -229,6 +230,32 @@ pub(super) async fn authorize(
         Some(email) => email,
         None => return Ok("No verified and primary email address found".into_response()),
     };
+
+    // Check team membership using the organization-specific endpoint
+    let membership_url = format!(
+        "{}orgs/{}/teams/{}/memberships/{}",
+        service.config.api_base_url,
+        service.config.required_org,
+        service.config.required_team_slug,
+        user_data.login
+    );
+
+    let response = client
+        .get(&membership_url)
+        .header(ACCEPT, HeaderValue::from_static(GITHUB_ACCEPT_TYPE))
+        .header(USER_AGENT, HeaderValue::from_static(USER_AGENT_VALUE))
+        .bearer_auth(token.access_token().secret())
+        .send()
+        .await
+        .map_err(|e| Error::GitHubApi(e.to_string()))?;
+
+    if response.status() != http::StatusCode::OK {
+        return Err(Error::TeamCheck(format!(
+            "You are not a member of team '{}/{}'. Ask CONTACT to get added and try again.",
+            service.config.required_org,
+            service.config.required_team_slug
+        )));
+    }
 
     let user: User = User {
         id: user_data.id,

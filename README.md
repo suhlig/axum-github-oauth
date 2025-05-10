@@ -4,13 +4,26 @@ A spike on using GitHub OAuth as authentication and authorization service.
 
 ## Configuration
 
-Environment variables:
+Environment variables for authentication:
 
-```
+```command
 OAUTH_CLIENT_ID="<...snip...>"
 OAUTH_CLIENT_SECRET="<...snip...>"
 REDIRECT_URL="https://example.com/authorize"
 SESSION_KEY="some-long-random-string"
+```
+
+For authorization, the following variables are needed:
+
+```command
+export REQUIRED_ORG=my-org
+export REQUIRED_TEAM_SLUG=my-team
+```
+
+When using GitHub Enterprise, configure your instance with
+
+```command
+export GITHUB_API_BASE=https://github.example.com/api/v3
 ```
 
 ## Example
@@ -43,5 +56,5 @@ The whole application is stateless. The only shared part is the `SESSION_KEY`, w
 
 ## TODO
 
-- authorization by membership in a GH team
+- Allow customization of CONTACT
 - redirect to original URL if it is protected and a login had to happen

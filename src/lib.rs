@@ -101,6 +101,9 @@ pub struct Config {
     // github endpoints
     pub auth_url: Url,
     pub token_url: Url,
+    pub api_base_url: Url,
+    pub required_org: String,
+    pub required_team_slug: String,
     // application specific settings / secrets
     pub session_key: cookie::Key,
     pub redirect_url: Url,
@@ -124,9 +127,22 @@ impl Default for Config {
 
         let session_key = cookie::Key::from(hasher.finalize().as_slice());
 
+        let api_base_url = env::var("GITHUB_API_BASE")
+            .unwrap_or("https://api.github.com".into())
+            .parse()
+            .expect("Invalid GITHUB_API_BASE URL");
+
+        let required_org = env::var("REQUIRED_ORG")
+            .expect("REQUIRED_ORG must be set");
+        let required_team_slug = env::var("REQUIRED_TEAM_SLUG")
+            .expect("REQUIRED_TEAM_SLUG must be set");
+
         Self {
             auth_url: Url::parse(GITHUB_AUTH_URL).unwrap(),
             token_url: Url::parse(GITHUB_TOKEN_URL).unwrap(),
+            api_base_url,
+            required_org,
+            required_team_slug,
             session_key,
             redirect_url,
             login_path: "/login".to_string(),
